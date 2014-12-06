@@ -136,6 +136,9 @@ for var in ["CFLAGS","CCFLAGS","CXXFLAGS","LINKFLAGS","CPPDEFINES","CPPPATH"]:
 			env[var] = SCons.Util.CLVar(os.environ[var])
 		print "copying enviroment variable {0}={1!r}".format(var,os.environ[var])
 
+#env["CC"] = "emcc"
+#env["CXX"] = "em++"
+
 #Used for intro text / executable name, actual bit flags are only set if the --64bit/--32bit command line args are given
 def add32bitflags(env):
 	env["BIT"] = 32
@@ -221,30 +224,34 @@ def findLibs(env, conf):
 			if not conf.CheckLib('mingw32') or not conf.CheckLib('ws2_32'):
 				FatalError("Error: some windows libraries not found or not installed, make sure your compiler is set up correctly")
 
-		if not conf.CheckLib('SDLmain'):
-			FatalError("libSDLmain not found or not installed")
+		#if not conf.CheckLib('SDLmain'):
+		#	FatalError("libSDLmain not found or not installed")
 
 	if platform == "Darwin":
-		if not conf.CheckFramework("SDL"):
-			FatalError("SDL framework not found or not installed")
+		pass
+		#if not conf.CheckFramework("SDL"):
+		#	FatalError("SDL framework not found or not installed")
 	elif not GetOption('renderer'):
 		if platform != "Darwin":
 			#Look for SDL
-			if not conf.CheckLib("SDL"):
-				FatalError("SDL development library not found or not installed")
+		#	if not conf.CheckLib("SDL"):
+		#		FatalError("SDL development library not found or not installed")
 			if platform == "Linux" or compilePlatform == "Linux":
 				try:
-					env.ParseConfig('sdl-config --cflags')
-					env.ParseConfig('sdl-config --libs')
+					pass
+					#env.ParseConfig('sdl-config --cflags')
+					#env.ParseConfig('sdl-config --libs')
 				except:
 					pass
 
 	#look for SDL.h
 	if not GetOption('renderer') and not conf.CheckCHeader('SDL.h'):
-		if conf.CheckCHeader('SDL/SDL.h'):
-			env.Append(CPPDEFINES=["SDL_INC"])
-		else:
-			FatalError("SDL.h not found")
+		pass
+		#if conf.CheckCHeader('SDL/SDL.h'):
+			#env.Append(CPPDEFINES=["SDL_INC"])
+		#	pass
+		#else:
+		#	FatalError("SDL.h not found")
 
 	if not GetOption('nolua') and not GetOption('renderer'):
 		#Look for Lua
@@ -493,7 +500,8 @@ if platform == "Windows" and not msvc:
 	envCopy.Append(CCFLAGS='-mstackrealign')
 	sources += envCopy.Object('src/simulation/Gravity.cpp')
 elif platform == "Darwin":
-	sources += ["src/SDLMain.m"]
+	pass
+	#sources += ["src/SDLMain.m"]
 
 
 #Program output name
@@ -529,5 +537,9 @@ if compilePlatform == "Windows" and not msvc:
 #Once we get here, finally compile
 env.Decider('MD5-timestamp')
 SetOption('implicit_cache', 1)
+
+env["CC"] = "emcc"
+env["CXX"] = "em++ -DPIX32BGRA -I /home/anx/emsc/zlib-1.2.8 -I /home/anx/emsc/bzip2-1.0.6"
+
 t = env.Program(target=programName, source=sources)
 Default(t)

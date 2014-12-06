@@ -49,6 +49,7 @@ extern "C" {
 #include "gui/Style.h"
 
 #include "client/HTTP.h"
+#include "emscripten.h"
 
 using namespace std;
 
@@ -572,22 +573,24 @@ void EventProcess(SDL_Event event)
 	}
 }
 
+
+int frameStart = SDL_GetTicks();
+float frameTime;
+float frameTimeAvg = 0.0f, correctedFrameTimeAvg = 0.0f;
+SDL_Event event;
+	
 void EngineProcess()
 {
-	int frameStart = SDL_GetTicks();
-	float frameTime;
-	float frameTimeAvg = 0.0f, correctedFrameTimeAvg = 0.0f;
-	SDL_Event event;
-	while(engine->Running())
-	{
-		if(engine->Broken()) { engine->UnBreak(); break; }
+	//while(engine->Running())
+	//{
+		//if(engine->Broken()) { engine->UnBreak(); break; }
 		event.type = 0;
 		while (SDL_PollEvent(&event))
 		{
 			EventProcess(event);
 			event.type = 0; //Clear last event
 		}
-		if(engine->Broken()) { engine->UnBreak(); break; }
+		//if(engine->Broken()) { engine->UnBreak(); break; }
 
 		engine->Tick();
 		engine->Draw();
@@ -614,7 +617,6 @@ void EngineProcess()
 			float targetFrameTime = 1000.0f/((float)ui::Engine::Ref().FpsLimit);
 			if(targetFrameTime - frameTimeAvg > 0)
 			{
-				SDL_Delay((targetFrameTime - frameTimeAvg) + 0.5f);
 				frameTime = SDL_GetTicks() - frameStart;//+= (int)(targetFrameTime - frameTimeAvg);
 			}
 		}
@@ -629,10 +631,8 @@ void EngineProcess()
 			lastTick = frameStart;
 			Client::Ref().Tick();
 		}
-	}
-#ifdef DEBUG
-	std::cout << "Breaking out of EngineProcess" << std::endl;
-#endif
+	//}
+
 }
 
 int GetModifiers()
@@ -988,7 +988,9 @@ int main(int argc, char * argv[])
 			}
 		}
 
-		EngineProcess();
+		emscripten_set_main_loop(EngineProcess, -1, 1);
+		//loop
+		//EngineProcess();
 		
 	#ifdef WIN
 		SaveWindowPosition();
